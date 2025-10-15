@@ -1,0 +1,599 @@
+#pragma version 11
+#pragma typetrack false
+
+// algopy.arc4.ARC4Contract.approval_program() -> uint64:
+main:
+    intcblock 0 1 32 8
+    bytecblock "staked_amt" "" "stake_time" "platform" "stake_count" "apy_" 0x151f7c75 "platform_list"
+    txn ApplicationID
+    bnz main_after_if_else@2
+    // smart_contracts/yield_router/contract.py:14-15
+    // # List of supported platforms (for iteration)
+    // self.platform_list = (
+    bytec 7 // "platform_list"
+    pushbytes 0x0008000f001800210005416c676f35000754696e796d616e00074d657373696e61000c466f6c6b7346696e616e6365
+    // smart_contracts/yield_router/contract.py:14-20
+    //         # List of supported platforms (for iteration)
+    //         self.platform_list = (
+    //     String("Algo5"),
+    //     String("Tinyman"),
+    //     String("Messina"),
+    //     String("FolksFinance")
+    // )
+    app_global_put
+
+main_after_if_else@2:
+    // smart_contracts/yield_router/contract.py:3
+    // class YieldRouterContract(ARC4Contract):
+    txn NumAppArgs
+    bz main___algopy_default_create@15
+    txn OnCompletion
+    !
+    assert // OnCompletion must be NoOp
+    txn ApplicationID
+    assert
+    pushbytess 0x0642ff90 0x5eb259de 0x9be35335 0xf9eba28b 0xbc76d9bb 0x5cd41c93 // method "stake(pay,address,address,uint64,uint64,string)void", method "unstake(address,uint64,uint64)void", method "update_platform_apy(string,uint64)void", method "get_user_tracking(address)(uint64,uint64,string,uint64)", method "calculate_rewards(address,uint64)uint64", method "get_recommended_platform(address)string"
+    txna ApplicationArgs 0
+    match stake unstake update_platform_apy get_user_tracking calculate_rewards get_recommended_platform
+    err
+
+main___algopy_default_create@15:
+    txn OnCompletion
+    !
+    txn ApplicationID
+    !
+    &&
+    return // on error: OnCompletion must be NoOp && can only call when creating
+
+
+// smart_contracts.yield_router.contract.YieldRouterContract.stake[routing]() -> void:
+stake:
+    // smart_contracts/yield_router/contract.py:22
+    // @arc4.abimethod
+    txn GroupIndex
+    intc_1 // 1
+    -
+    dup
+    gtxns TypeEnum
+    intc_1 // pay
+    ==
+    assert // transaction type is pay
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 32
+    ==
+    assert // invalid number of bytes for uint8[32]
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_2 // 32
+    ==
+    assert // invalid number of bytes for uint8[32]
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for uint64
+    btoi
+    txna ApplicationArgs 4
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for uint64
+    btoi
+    txna ApplicationArgs 5
+    dup
+    intc_0 // 0
+    extract_uint16
+    pushint 2 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for (len+utf8[])
+    extract 2 0
+    // smart_contracts/yield_router/contract.py:32
+    // assert payment.receiver == contract_address, "Payment must go to contract"
+    dig 5
+    gtxns Receiver
+    uncover 5
+    ==
+    assert // Payment must go to contract
+    // smart_contracts/yield_router/contract.py:33
+    // assert payment.amount == amount, "Payment amount must match stake amount"
+    uncover 4
+    gtxns Amount
+    dig 3
+    ==
+    assert // Payment amount must match stake amount
+    // smart_contracts/yield_router/contract.py:34
+    // assert amount > UInt64(0), "Staking amount must be greater than zero"
+    dig 2
+    assert // Staking amount must be greater than zero
+    // smart_contracts/yield_router/contract.py:36
+    // previous = self.staked_amount.get(for_account, default=UInt64(0))
+    dig 3
+    intc_0 // 0
+    bytec_0 // "staked_amt"
+    app_local_get_ex
+    intc_0 // 0
+    cover 2
+    select
+    // smart_contracts/yield_router/contract.py:37
+    // self.staked_amount[for_account] = previous + amount
+    uncover 3
+    +
+    dig 3
+    bytec_0 // "staked_amt"
+    uncover 2
+    app_local_put
+    // smart_contracts/yield_router/contract.py:38
+    // self.staking_timestamp[for_account] = timestamp
+    dig 2
+    bytec_2 // "stake_time"
+    uncover 3
+    app_local_put
+    // smart_contracts/yield_router/contract.py:39
+    // self.last_platform[for_account] = platform
+    dig 1
+    bytec_3 // "platform"
+    uncover 2
+    app_local_put
+    // smart_contracts/yield_router/contract.py:40
+    // self.total_stake_count[for_account] = self.total_stake_count.get(for_account, default=UInt64(0)) + UInt64(1)
+    dup
+    intc_0 // 0
+    bytec 4 // "stake_count"
+    app_local_get_ex
+    intc_0 // 0
+    cover 2
+    select
+    intc_1 // 1
+    +
+    bytec 4 // "stake_count"
+    swap
+    app_local_put
+    // smart_contracts/yield_router/contract.py:22
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// smart_contracts.yield_router.contract.YieldRouterContract.unstake[routing]() -> void:
+unstake:
+    // smart_contracts/yield_router/contract.py:42
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 32
+    ==
+    assert // invalid number of bytes for uint8[32]
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for uint64
+    btoi
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for uint64
+    btoi
+    // smart_contracts/yield_router/contract.py:44
+    // assert amount > UInt64(0), "Unstaking amount must be greater than zero"
+    dig 1
+    assert // Unstaking amount must be greater than zero
+    // smart_contracts/yield_router/contract.py:45
+    // prev = self.staked_amount.get(for_account, default=UInt64(0))
+    dig 2
+    intc_0 // 0
+    bytec_0 // "staked_amt"
+    app_local_get_ex
+    intc_0 // 0
+    cover 2
+    select
+    // smart_contracts/yield_router/contract.py:46
+    // assert amount <= prev, "Cannot unstake more than currently staked"
+    dig 2
+    dig 1
+    <=
+    assert // Cannot unstake more than currently staked
+    // smart_contracts/yield_router/contract.py:47
+    // self.staked_amount[for_account] = prev - amount
+    uncover 2
+    -
+    dig 2
+    bytec_0 // "staked_amt"
+    uncover 2
+    app_local_put
+    // smart_contracts/yield_router/contract.py:48
+    // self.staking_timestamp[for_account] = timestamp
+    bytec_2 // "stake_time"
+    swap
+    app_local_put
+    // smart_contracts/yield_router/contract.py:42
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// smart_contracts.yield_router.contract.YieldRouterContract.update_platform_apy[routing]() -> void:
+update_platform_apy:
+    // smart_contracts/yield_router/contract.py:50
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    intc_0 // 0
+    extract_uint16
+    pushint 2 // 2
+    +
+    dig 1
+    len
+    ==
+    assert // invalid number of bytes for (len+utf8[])
+    extract 2 0
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for uint64
+    btoi
+    // smart_contracts/yield_router/contract.py:52-53
+    // # Ideally, this should be restricted to admin
+    // self.platform_apys[platform] = apy
+    bytec 5 // "apy_"
+    uncover 2
+    concat
+    swap
+    itob
+    box_put
+    // smart_contracts/yield_router/contract.py:50
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// smart_contracts.yield_router.contract.YieldRouterContract.get_user_tracking[routing]() -> void:
+get_user_tracking:
+    // smart_contracts/yield_router/contract.py:55
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_2 // 32
+    ==
+    assert // invalid number of bytes for uint8[32]
+    // smart_contracts/yield_router/contract.py:58
+    // self.staked_amount.get(for_account, default=UInt64(0)),
+    dup
+    intc_0 // 0
+    bytec_0 // "staked_amt"
+    app_local_get_ex
+    intc_0 // 0
+    cover 2
+    select
+    // smart_contracts/yield_router/contract.py:59
+    // self.staking_timestamp.get(for_account, default=UInt64(0)),
+    dig 1
+    intc_0 // 0
+    bytec_2 // "stake_time"
+    app_local_get_ex
+    intc_0 // 0
+    cover 2
+    select
+    // smart_contracts/yield_router/contract.py:60
+    // self.last_platform.get(for_account, default=String("")),
+    dig 2
+    intc_0 // 0
+    bytec_3 // "platform"
+    app_local_get_ex
+    bytec_1 // ""
+    cover 2
+    select
+    // smart_contracts/yield_router/contract.py:61
+    // self.total_stake_count.get(for_account, default=UInt64(0)),
+    uncover 3
+    intc_0 // 0
+    bytec 4 // "stake_count"
+    app_local_get_ex
+    intc_0 // 0
+    cover 2
+    select
+    // smart_contracts/yield_router/contract.py:55
+    // @arc4.abimethod
+    uncover 3
+    itob
+    uncover 3
+    itob
+    concat
+    dig 2
+    len
+    itob
+    extract 6 2
+    uncover 3
+    concat
+    swap
+    pushbytes 0x001a
+    concat
+    uncover 2
+    itob
+    concat
+    swap
+    concat
+    bytec 6 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_1 // 1
+    return
+
+
+// smart_contracts.yield_router.contract.YieldRouterContract.calculate_rewards[routing]() -> void:
+calculate_rewards:
+    // smart_contracts/yield_router/contract.py:64
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dupn 2
+    len
+    intc_2 // 32
+    ==
+    assert // invalid number of bytes for uint8[32]
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for uint64
+    btoi
+    swap
+    // smart_contracts/yield_router/contract.py:66
+    // stake_time = self.staking_timestamp.get(for_account, default=UInt64(0))
+    intc_0 // 0
+    bytec_2 // "stake_time"
+    app_local_get_ex
+    intc_0 // 0
+    cover 2
+    select
+    dup
+    // smart_contracts/yield_router/contract.py:67
+    // if stake_time == UInt64(0):
+    bnz calculate_rewards_after_if_else@3
+    // smart_contracts/yield_router/contract.py:68
+    // return UInt64(0)
+    intc_0 // 0
+
+calculate_rewards_after_inlined_smart_contracts.yield_router.contract.YieldRouterContract.calculate_rewards@4:
+    // smart_contracts/yield_router/contract.py:64
+    // @arc4.abimethod
+    itob
+    bytec 6 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_1 // 1
+    return
+
+calculate_rewards_after_if_else@3:
+    // smart_contracts/yield_router/contract.py:69
+    // time_diff = current_time - stake_time
+    dup2
+    -
+    // smart_contracts/yield_router/contract.py:70
+    // staked = self.staked_amount.get(for_account, default=UInt64(0))
+    dig 3
+    dup
+    intc_0 // 0
+    bytec_0 // "staked_amt"
+    app_local_get_ex
+    intc_0 // 0
+    cover 2
+    select
+    // smart_contracts/yield_router/contract.py:71
+    // platform = self.last_platform.get(for_account, default=String(""))
+    swap
+    intc_0 // 0
+    bytec_3 // "platform"
+    app_local_get_ex
+    bytec_1 // ""
+    cover 2
+    select
+    // smart_contracts/yield_router/contract.py:72
+    // apy = self.platform_apys.get(platform, default=UInt64(0))
+    bytec 5 // "apy_"
+    swap
+    concat
+    box_get
+    swap
+    btoi
+    intc_0 // 0
+    swap
+    uncover 2
+    select
+    // smart_contracts/yield_router/contract.py:73
+    // reward = (staked * apy * time_diff) // (365 * 24 * 3600 * 10000)
+    *
+    *
+    pushint 315360000000 // 315360000000
+    /
+    // smart_contracts/yield_router/contract.py:64
+    // @arc4.abimethod
+    b calculate_rewards_after_inlined_smart_contracts.yield_router.contract.YieldRouterContract.calculate_rewards@4
+
+
+// smart_contracts.yield_router.contract.YieldRouterContract.get_recommended_platform[routing]() -> void:
+get_recommended_platform:
+    bytec_1 // ""
+    // smart_contracts/yield_router/contract.py:76
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dupn 2
+    len
+    intc_2 // 32
+    ==
+    assert // invalid number of bytes for uint8[32]
+    // smart_contracts/yield_router/contract.py:78
+    // last_platform = self.last_platform.get(for_account, default=String(""))
+    intc_0 // 0
+    bytec_3 // "platform"
+    app_local_get_ex
+    bytec_1 // ""
+    cover 2
+    select
+    // smart_contracts/yield_router/contract.py:79
+    // best_platform = String("")
+    bytec_1 // ""
+    // smart_contracts/yield_router/contract.py:80
+    // highest_score = UInt64(0)
+    intc_0 // 0
+    // smart_contracts/yield_router/contract.py:82
+    // for platform in self.platform_list:
+    dup
+    bytec 7 // "platform_list"
+    app_global_get_ex
+    assert // check self.platform_list exists
+    dup
+    intc_0 // 0
+    extract_uint16
+    dig 1
+    pushint 2 // 2
+    extract_uint16
+    dig 2
+    uncover 2
+    dig 2
+    substring3
+    extract 2 0
+    cover 2
+    dig 1
+    pushint 4 // 4
+    extract_uint16
+    dig 2
+    uncover 2
+    dig 2
+    substring3
+    extract 2 0
+    cover 2
+    dig 1
+    pushint 6 // 6
+    extract_uint16
+    dig 2
+    uncover 2
+    dig 2
+    substring3
+    extract 2 0
+    cover 2
+    dig 1
+    len
+    substring3
+    extract 2 0
+    intc_0 // 0
+
+get_recommended_platform_for_body@2:
+    // smart_contracts/yield_router/contract.py:83
+    // apy = self.platform_apys.get(platform, default=UInt64(0))
+    bytec 5 // "apy_"
+    dig 5
+    dup
+    cover 2
+    concat
+    box_get
+    swap
+    btoi
+    intc_0 // 0
+    swap
+    uncover 2
+    select
+    swap
+    // smart_contracts/yield_router/contract.py:86-87
+    // # Bonus: reward user familiarity with platforms they've used before
+    // if platform == last_platform:
+    dig 9
+    ==
+    bnz get_recommended_platform_if_body@3
+    bury 10
+
+get_recommended_platform_after_if_else@4:
+    // smart_contracts/yield_router/contract.py:89-90
+    // # Add tiny bonus based on loyalty
+    // loyalty = self.total_stake_count.get(for_account, default=UInt64(0))
+    dig 8
+    intc_0 // 0
+    bytec 4 // "stake_count"
+    app_local_get_ex
+    intc_0 // 0
+    cover 2
+    select
+    // smart_contracts/yield_router/contract.py:91
+    // score = score + (loyalty * UInt64(10))
+    pushint 10 // 10
+    *
+    dig 10
+    +
+    dup
+    bury 11
+    // smart_contracts/yield_router/contract.py:93
+    // if score > highest_score:
+    dig 6
+    >
+    bz get_recommended_platform_after_if_else@6
+    dig 4
+    bury 7
+    dig 9
+    bury 6
+
+get_recommended_platform_after_if_else@6:
+    // smart_contracts/yield_router/contract.py:82
+    // for platform in self.platform_list:
+    dup
+    switch get_recommended_platform_for_header_1@8 get_recommended_platform_for_header_2@9 get_recommended_platform_for_header_3@10
+    // smart_contracts/yield_router/contract.py:76
+    // @arc4.abimethod
+    dig 6
+    dup
+    len
+    itob
+    extract 6 2
+    swap
+    concat
+    bytec 6 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_1 // 1
+    return
+
+get_recommended_platform_for_header_3@10:
+    pushint 3 // 3
+    bury 1
+    dig 1
+    bury 5
+    b get_recommended_platform_for_body@2
+
+get_recommended_platform_for_header_2@9:
+    pushint 2 // 2
+    bury 1
+    dig 2
+    bury 5
+    b get_recommended_platform_for_body@2
+
+get_recommended_platform_for_header_1@8:
+    intc_1 // 1
+    bury 1
+    dig 3
+    bury 5
+    b get_recommended_platform_for_body@2
+
+get_recommended_platform_if_body@3:
+    // smart_contracts/yield_router/contract.py:88
+    // score = score // UInt64(2)  # reduce weight to encourage diversity
+    pushint 2 // 2
+    /
+    bury 10
+    b get_recommended_platform_after_if_else@4

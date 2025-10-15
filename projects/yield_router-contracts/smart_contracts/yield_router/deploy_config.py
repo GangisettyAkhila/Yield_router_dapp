@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 # define deployment behaviour based on supplied app spec
 def deploy() -> None:
-    from smart_contracts.artifacts.yield_router.yield_router_client import (
+    from artifacts.yield_router.yield_router_contract_client import (
         HelloArgs,
         YieldRouterFactory,
     )

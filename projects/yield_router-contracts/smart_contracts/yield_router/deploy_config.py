@@ -1,17 +1,18 @@
 import logging
+import sys
+import os
 
 import algokit_utils
+
+# Ensure the parent directory is in sys.path so "artifacts" can be imported
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 logger = logging.getLogger(__name__)
 
 
 # define deployment behaviour based on supplied app spec
 def deploy() -> None:
-    from artifacts.yield_router.yield_router_contract_client import (
-        HelloArgs,
-        YieldRouterFactory,
-    )
-
+    from artifacts.yield_router.yield_router_contract_client import HelloArgs, YieldRouterContractFactory
     algorand = algokit_utils.AlgorandClient.from_environment()
     deployer_ = algorand.account.from_environment("DEPLOYER")
 

@@ -13,7 +13,6 @@ class YieldRouterContract(ARC4Contract):
 
         # List of supported platforms (for iteration)
         self.platform_list = (
-    String("Algo5"),
     String("Tinyman"),
     String("Messina"),
     String("FolksFinance")

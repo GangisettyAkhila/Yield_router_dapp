@@ -1,19 +1,34 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
+import * as React from "react";
+import * as ReactDOM from "react-dom/client";
 import App from "./App";
 import "./styles/App.css";
-import ErrorBoundary from "./components/ErrorBoundary";
-import { WalletProvider, WalletManager } from "@txnlab/use-wallet-react";
+import { WalletManager, WalletProvider } from "@txnlab/use-wallet-react";
+import { DeflyWalletConnect } from "@blockshake/defly-connect";
+import { PeraWalletConnect } from "@perawallet/connect";
+import { getAlgodConfigFromViteEnvironment } from "./utils/network/getAlgoClientConfigs";
 
-// Create a WalletManager instance (configure as needed)
-const walletManager = new WalletManager();
+// Initialize configuration
+const algodConfig = getAlgodConfigFromViteEnvironment();
+
+// Initialize wallet instances
+const deflyWallet = new DeflyWalletConnect();
+const peraWallet = new PeraWalletConnect();
+
+// Configure WalletProvider
+const walletProviderProps = {
+  wallets: [deflyWallet, peraWallet],
+  network: algodConfig.network || "testnet",
+  nodeServer: algodConfig.server,
+  nodeToken: algodConfig.token as string,
+  nodePort: algodConfig.port?.toString() || "",
+};
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <WalletProvider manager={walletManager}>
-      <ErrorBoundary>
+    <WalletProvider manager={new WalletManager} {...walletProviderProps}>
+      <React.Suspense fallback={<div>Loading...</div>}>
         <App />
-      </ErrorBoundary>
+      </React.Suspense>
     </WalletProvider>
   </React.StrictMode>
 );

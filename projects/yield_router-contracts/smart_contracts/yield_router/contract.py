@@ -7,6 +7,8 @@ class YieldRouterContract(ARC4Contract):
         self.staking_timestamp = LocalState(UInt64, key="stake_time")
         self.last_platform = LocalState(String, key="platform")
         self.total_stake_count = LocalState(UInt64, key="stake_count")  # track user loyalty
+        self.game_credits = LocalState(UInt64, key="game_credits")  # credits for playing games
+        self.stake_credits = LocalState(UInt64, key="stake_credits")  # credits for staking on matches
 
         # BoxMap for platform APYs (key: platform name, value: APY)
         self.platform_apys = BoxMap(String, UInt64, key_prefix="apy_")
@@ -52,12 +54,14 @@ class YieldRouterContract(ARC4Contract):
         self.platform_apys[platform] = apy
 
     @arc4.abimethod
-    def get_user_tracking(self, for_account: Account) -> tuple[UInt64, UInt64, String, UInt64]:
+    def get_user_tracking(self, for_account: Account) -> tuple[UInt64, UInt64, String, UInt64, UInt64, UInt64]:
         return (
             self.staked_amount.get(for_account, default=UInt64(0)),
             self.staking_timestamp.get(for_account, default=UInt64(0)),
             self.last_platform.get(for_account, default=String("")),
             self.total_stake_count.get(for_account, default=UInt64(0)),
+            self.game_credits.get(for_account, default=UInt64(0)),
+            self.stake_credits.get(for_account, default=UInt64(0)),
         )
 
     @arc4.abimethod
@@ -71,6 +75,23 @@ class YieldRouterContract(ARC4Contract):
         apy = self.platform_apys.get(platform, default=UInt64(0))
         reward = (staked * apy * time_diff) // (365 * 24 * 3600 * 10000)
         return reward
+
+    @arc4.abimethod
+    def claim_yield(self, for_account: Account, current_time: UInt64) -> tuple[UInt64, UInt64]:
+        reward = self.calculate_rewards(for_account, current_time)
+        # Default minted credits are zero
+        game_credits_mint = UInt64(0)
+        stake_credits_mint = UInt64(0)
+        if reward > UInt64(0):
+            # Mint GameCredits and StakeCredits from yield (e.g., 50% each)
+            game_credits_mint = reward // UInt64(2)
+            stake_credits_mint = reward - game_credits_mint
+            self.game_credits[for_account] = self.game_credits.get(for_account, default=UInt64(0)) + game_credits_mint
+            self.stake_credits[for_account] = self.stake_credits.get(for_account, default=UInt64(0)) + stake_credits_mint
+            # Reset staking timestamp to current time for next reward calculation
+            self.staking_timestamp[for_account] = current_time
+        # Always return defined UInt64 values (possibly zero)
+        return (game_credits_mint, stake_credits_mint)
 
     @arc4.abimethod
     def get_recommended_platform(self, for_account: Account) -> String:

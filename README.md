@@ -5,6 +5,7 @@ This starter full stack project has been generated using AlgoKit. See below for 
 ## Setup
 
 ### Initial setup
+
 1. Clone this repository to your local machine.
 2. Ensure [Docker](https://www.docker.com/) is installed and operational. Then, install `AlgoKit` following this [guide](https://github.com/algorandfoundation/algokit-cli#install).
 3. Run `algokit project bootstrap all` in the project directory. This command sets up your environment by installing necessary dependencies, setting up a Python virtual environment, and preparing your `.env` file.
@@ -43,3 +44,31 @@ The frontend starter also provides an example of interactions with your YieldRou
 ## Next Steps
 
 You can take this project and customize it to build your own decentralized applications on Algorand. Make sure to understand how to use AlgoKit and how to write smart contracts for Algorand before you start.
+
+## Quickstart (frontend)
+
+1. Copy the TestNet environment variables — a `.env` has been added to the frontend folder using public algonode endpoints.
+
+2. From the frontend folder, install dependencies and run the dev server:
+
+```powershell
+cd projects\yield_router-frontend
+npm install
+npm run dev
+```
+
+3. Use the Connect Wallet button to connect a TestNet wallet (Pera, MyAlgo, etc.). The app uses `@txnlab/use-wallet-react` to manage wallet providers.
+
+## Deploying contracts
+
+Smart contracts live in `projects/yield_router-contracts/smart_contracts/yield_router`. We provide an algokit-style `deploy_config.py` that demonstrates how to deploy using algokit/algokit-utils. You will need to configure Algorand credentials and an account named `DEPLOYER` in your environment before running deployment.
+
+Typical workflow (local machine must have Python and algokit tooling configured):
+
+```powershell
+cd projects\yield_router-contracts\smart_contracts\yield_router
+# Ensure your environment contains the deployer account and Algod/Indexer configs
+python deploy_config.py
+```
+
+If you prefer to deploy from the frontend or other tooling, generate the ARC-56 TypeScript client (the frontend build step already does this) and call deploy via the Algokit client factory.

@@ -10,22 +10,26 @@ import { getAlgodConfigFromViteEnvironment } from "./utils/network/getAlgoClient
 // Initialize configuration
 const algodConfig = getAlgodConfigFromViteEnvironment();
 
-// Initialize wallet instances
+// Initialize wallet instances with proper configuration
 const deflyWallet = new DeflyWalletConnect();
-const peraWallet = new PeraWalletConnect();
+const peraWallet = new PeraWalletConnect({
+  shouldShowSignTxnToast: true,
+});
 
-// Configure WalletProvider
+// Configure WalletProvider with complete settings
 const walletProviderProps = {
   wallets: [deflyWallet, peraWallet],
   network: algodConfig.network || "testnet",
   nodeServer: algodConfig.server,
-  nodeToken: algodConfig.token as string,
+  nodeToken: algodConfig.token || "",
   nodePort: algodConfig.port?.toString() || "",
+  algosdkStatic: undefined,
+  debug: true,
 };
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <WalletProvider manager={new WalletManager} {...walletProviderProps}>
+    <WalletProvider manager={new WalletManager()} {...walletProviderProps}>
       <React.Suspense fallback={<div>Loading...</div>}>
         <App />
       </React.Suspense>

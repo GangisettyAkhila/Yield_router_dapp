@@ -89,7 +89,7 @@ export default function GameCanvas() {
             Score: <strong>{score}</strong>
           </div>
           {gameOver && (
-            <button className="btn btn-red" onClick={handleRetry}>
+            <button className="btn-cricket btn-soft" onClick={handleRetry}>
               Retry
             </button>
           )}

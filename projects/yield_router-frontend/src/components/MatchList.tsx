@@ -49,7 +49,7 @@ export default function MatchList() {
               <p>Status: {match.status}</p>
             </div>
             {match.status === "open" && (
-              <button className="btn btn-green" onClick={() => handleJoinMatch(match.id)}>
+              <button className="btn-cricket btn-glow" onClick={() => handleJoinMatch(match.id)}>
                 Join
               </button>
             )}

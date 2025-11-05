@@ -28,7 +28,7 @@ export default function WatchPanel() {
         <div>
           {!isRunning && over < 20 && (
             <button
-              className="btn btn-indigo"
+              className="btn-cricket btn-glow"
               onClick={() => {
                 setIsRunning(true);
               }}
@@ -37,7 +37,7 @@ export default function WatchPanel() {
             </button>
           )}
           {isRunning && (
-            <button className="btn btn-gray" onClick={() => setIsRunning(false)}>
+            <button className="btn-soft" onClick={() => setIsRunning(false)}>
               Pause
             </button>
           )}

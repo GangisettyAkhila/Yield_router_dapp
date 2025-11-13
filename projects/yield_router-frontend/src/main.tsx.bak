@@ -1,0 +1,92 @@
+import * as React from "react";import * as React from "react";
+
+import * as ReactDOM from "react-dom/client";import * as ReactDOM from "react-dom/client";
+
+import App from "./App";import App from "./App";
+
+import "./styles/App.css";import "./styles/App.css";
+
+import { WalletProvider } from "@txnlab/use-wallet-react";import { WalletProvider, useInitializeProviders, PROVIDER_ID } from "@txnlab/use-wallet-react";
+
+import { DeflyWalletConnect } from "@blockshake/defly-connect";import { DeflyWalletConnect } from "@blockshake/defly-connect";
+
+import { PeraWalletConnect } from "@perawallet/connect";import { PeraWalletConnect } from "@perawallet/connect";
+
+import { getAlgodConfigFromViteEnvironment } from "./utils/network/getAlgoClientConfigs";import { getAlgodConfigFromViteEnvironment } from "./utils/network/getAlgoClientConfigs";
+
+
+
+// Initialize configuration// Initialize configuration
+
+const algodConfig = getAlgodConfigFromViteEnvironment();const algodConfig = getAlgodConfigFromViteEnvironment();
+
+
+
+// Initialize providers// Get the network from algodConfig
+
+const peraWallet = new PeraWalletConnect({const network = algodConfig.network === "mainnet" ? "mainnet" : "testnet";
+
+  shouldShowSignTxnToast: true
+
+});const providers = useInitializeProviders(
+
+  [
+
+const deflyWallet = new DeflyWalletConnect();    {
+
+      id: PROVIDER_ID.PERA,
+
+// Get the network from algodConfig      clientStatic: PeraWalletConnect,
+
+const network = algodConfig.network === "mainnet" ? "mainnet" : "testnet";      clientOptions: { shouldShowSignTxnToast: true },
+
+    },
+
+ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(    {
+
+  <React.StrictMode>      id: PROVIDER_ID.DEFLY,
+
+    <WalletProvider      clientStatic: DeflyWalletConnect,
+
+      providers={{      clientOptions: {},
+
+        pera: peraWallet,    },
+
+        defly: deflyWallet  ],
+
+      }}  network
+
+      nodeConfig={{);
+
+        network: network,
+
+        nodeServer: algodConfig.server,ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+
+        nodeToken: algodConfig.token || "",  <React.StrictMode>
+
+        nodePort: algodConfig.port?.toString() || ""    <WalletProvider
+
+      }}      value={{
+
+      autoConnect={true}        providers,
+
+    >        nodeConfig: {
+
+      <React.Suspense fallback={<div>Loading...</div>}>          network: network,
+
+        <App />          nodeServer: algodConfig.server,
+
+      </React.Suspense>          nodeToken: algodConfig.token || "",
+
+    </WalletProvider>          nodePort: algodConfig.port?.toString() || "",
+
+  </React.StrictMode>        },
+
+);      }}
+    >
+      <React.Suspense fallback={<div>Loading...</div>}>
+        <App />
+      </React.Suspense>
+    </WalletProvider>
+  </React.StrictMode>
+);

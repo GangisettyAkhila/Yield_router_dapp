@@ -1,10 +1,11 @@
 import * as React from "react";
 import { useWallet, Wallet, WalletId } from "@txnlab/use-wallet-react";
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { ellipseAddress } from "../utils/ellipseAddress";
 import { getAlgodConfigFromViteEnvironment } from "../utils/network/getAlgoClientConfigs";
 import { Algodv2 } from "algosdk";
+import Account from "./Account";
 
 interface ConnectWalletInterface {
   openModal: boolean;
@@ -39,10 +40,9 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
       setBalance((prev) => ({ ...prev, isLoading: true, error: null }));
       try {
         const algod = new Algodv2(algoConfig.token as string, algoConfig.server, algoConfig.port?.toString() || "");
-
         const accountInfo = await algod.accountInformation(activeAddress).do();
         setBalance({
-          algoBalance: accountInfo.amount / 1e6, // Convert microAlgos to Algos
+          algoBalance: accountInfo.amount / 1e6,
           minBalance: accountInfo["min-balance"] / 1e6,
           isLoading: false,
           error: null,
@@ -63,163 +63,191 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
   }, [activeAddress, algoConfig]);
 
   return (
-    <div className={`modal ${openModal ? "modal-open" : ""} wallet-connect-modal`} aria-hidden={!openModal}>
-      <motion.div
-        className="modal-box"
-        role="dialog"
-        aria-modal="true"
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 8 }}
-        transition={{ duration: 0.22 }}
-      >
-        <h3 className="modal-title">Connect your wallet</h3>
-        <p className="modal-subtitle">Choose a provider to securely sign transactions on Algorand.</p>
+    <AnimatePresence>
+      {openModal && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/50 backdrop-blur-sm"
+          onClick={(e) => e.target === e.currentTarget && closeModal()}
+        >
+          <motion.div
+            className="relative w-full max-w-md mx-4 bg-[#141824] rounded-2xl shadow-2xl border border-[#2A3144]/40"
+            role="dialog"
+            aria-modal="true"
+            initial={{ opacity: 0, y: 8, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 8, scale: 0.95 }}
+            transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-white">Connect Wallet</h3>
+                <button onClick={closeModal} className="p-2 text-gray-400 hover:text-white transition-colors">
+                  <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path
+                      fillRule="evenodd"
+                      d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </button>
+              </div>
 
-        <div className="grid m-2 pt-2">
-          {activeAddress && (
-            <>
-              <div className="bg-gradient-to-r from-indigo-50 to-emerald-50 rounded-2xl p-6 shadow-lg mb-6 backdrop-blur-sm border border-white/30">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-gradient-to-br from-indigo-600 to-emerald-500 rounded-xl flex items-center justify-center">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path
-                          d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
+              {activeAddress ? (
+                <div className="space-y-6">
+                  <div className="p-4 rounded-xl bg-gradient-to-br from-[#1A1F2E] to-[#1E2436] border border-[#2A3144]/60">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-[#00B4F0] to-[#0090C0] rounded-xl flex items-center justify-center">
+                        <svg
+                          width="24"
+                          height="24"
+                          viewBox="0 0 24 24"
+                          fill="none"
                           stroke="white"
                           strokeWidth="2"
                           strokeLinecap="round"
                           strokeLinejoin="round"
-                        />
-                      </svg>
+                        >
+                          <path d="M20 8h-9a2 2 0 00-2 2v8a2 2 0 002 2h9M4 6h9a2 2 0 012 2v8a2 2 0 01-2 2H4" />
+                        </svg>
+                      </div>
+                      <div>
+                        <h4 className="text-white font-semibold">Connected Account</h4>
+                        <a
+                          href={`https://lora.algokit.io/${
+                            algoConfig.network === "" ? "localnet" : algoConfig.network.toLowerCase()
+                          }/account/${activeAddress}/`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#00B4F0] hover:text-[#0090C0] transition-colors text-sm"
+                        >
+                          {ellipseAddress(activeAddress)}
+                        </a>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-bold text-xl text-gray-800">Connected Account</h3>
-                      <a
-                        className="text-indigo-600 hover:text-indigo-700 font-medium"
-                        target="_blank"
-                        href={`https://lora.algokit.io/${
-                          algoConfig.network === "" ? "localnet" : algoConfig.network.toLocaleLowerCase()
-                        }/account/${activeAddress}/`}
-                      >
-                        {ellipseAddress(activeAddress)}
-                      </a>
+
+                    <div className="grid grid-cols-2 gap-4 mt-4">
+                      <div className="p-3 rounded-lg bg-[#1A1F2E]/60 border border-[#2A3144]/40">
+                        <div className="text-gray-400 text-sm mb-1">Balance</div>
+                        {balance.isLoading ? (
+                          <div className="h-6 bg-[#2A3144]/40 rounded animate-pulse" />
+                        ) : balance.error ? (
+                          <div className="text-red-400 text-sm">{balance.error}</div>
+                        ) : (
+                          <div className="text-white font-medium">{balance.algoBalance.toFixed(3)} ALGO</div>
+                        )}
+                      </div>
+                      <div className="p-3 rounded-lg bg-[#1A1F2E]/60 border border-[#2A3144]/40">
+                        <div className="text-gray-400 text-sm mb-1">Min Balance</div>
+                        {balance.isLoading ? (
+                          <div className="h-6 bg-[#2A3144]/40 rounded animate-pulse" />
+                        ) : balance.error ? (
+                          <div className="text-red-400 text-sm">{balance.error}</div>
+                        ) : (
+                          <div className="text-white font-medium">{balance.minBalance.toFixed(3)} ALGO</div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-emerald-100 text-emerald-800">
-                    {algoConfig.network === "" ? "localnet" : algoConfig.network.toLocaleLowerCase()}
-                  </span>
+                  <button
+                    onClick={async () => {
+                      const activeWallet = wallets?.find((w) => w.isActive);
+                      if (activeWallet) {
+                        await activeWallet.disconnect();
+                        closeModal();
+                      }
+                    }}
+                    className="w-full px-4 py-3 text-white font-medium bg-red-500/20 hover:bg-red-500/30 rounded-xl transition-colors"
+                  >
+                    Disconnect Wallet
+                  </button>
                 </div>
+              ) : (
+                <div className="space-y-4">
+                  <p className="text-gray-400 text-sm">Select a wallet to connect and get started</p>
 
-                <div className="mt-6 grid grid-cols-2 gap-4">
-                  <div className="bg-white p-4 rounded-xl">
-                    <div className="text-sm text-gray-500">Balance</div>
-                    {balance.isLoading ? (
-                      <div className="animate-pulse bg-gray-200 h-6 w-24 rounded mt-1" />
-                    ) : balance.error ? (
-                      <div className="text-red-500 text-sm">{balance.error}</div>
-                    ) : (
-                      <div className="text-xl font-bold text-gray-900">{balance.algoBalance.toFixed(3)} ALGO</div>
-                    )}
-                  </div>
-                  <div className="bg-white p-4 rounded-xl">
-                    <div className="text-sm text-gray-500">Min Balance</div>
-                    {balance.isLoading ? (
-                      <div className="animate-pulse bg-gray-200 h-6 w-24 rounded mt-1" />
-                    ) : balance.error ? (
-                      <div className="text-red-500 text-sm">{balance.error}</div>
-                    ) : (
-                      <div className="text-xl font-bold text-gray-900">{balance.minBalance.toFixed(3)} ALGO</div>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="divider" />
-            </>
-          )}
+                  <div className="grid gap-3">
+                    <AnimatePresence>
+                      {wallets?.map((wallet) => (
+                        <motion.button
+                          key={wallet.id}
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -8 }}
+                          className={`
+                            w-full flex items-center gap-4 p-4 rounded-xl
+                            bg-[#1A1F2E] hover:bg-[#1E2436] 
+                            border border-[#2A3144]/60 hover:border-[#00B4F0]/40
+                            transition-all duration-200 group
+                          `}
+                          onClick={async () => {
+                            try {
+                              setConnectingId(wallet.id);
+                              setConnectError(null);
+                              await wallet.connect();
+                              closeModal();
+                            } catch (error: any) {
+                              console.error("Failed to connect wallet:", error);
+                              setConnectError(error?.message || "Failed to connect");
+                            } finally {
+                              setConnectingId(null);
+                            }
+                          }}
+                          disabled={connectingId === wallet.id}
+                        >
+                          {!isKmd(wallet) && (
+                            <div className="w-10 h-10 rounded-lg bg-[#2A3144]/40 p-2 group-hover:scale-110 transition-transform duration-200">
+                              <img src={wallet.metadata.icon} alt={wallet.metadata.name} className="w-full h-full object-contain" />
+                            </div>
+                          )}
 
-          {!activeAddress && (
-            <div className="grid grid-cols-1 gap-4 wallet-grid">
-              {wallets?.map((wallet) => (
-                <motion.button
-                  key={`provider-${wallet.id}`}
-                  data-test-id={`${wallet.id}-connect`}
-                  whileHover={{ scale: 1.02, rotate: -1 }}
-                  whileTap={{ scale: 0.98, rotate: 0 }}
-                  className="wallet-card"
-                  onClick={async () => {
-                    setConnectError(null);
-                    try {
-                      setConnectingId(wallet.id);
-                      await wallet.connect();
-                      // Close the modal after successful connect
-                      closeModal();
-                    } catch (err: any) {
-                      console.error("Wallet connect failed", err);
-                      const msg = err?.message || String(err) || "Failed to connect wallet";
-                      setConnectError(msg);
-                    } finally {
-                      setConnectingId(null);
-                    }
-                  }}
-                >
-                  {!isKmd(wallet) && (
-                    <div className="wallet-card-icon">
-                      <img alt={`wallet_icon_${wallet.id}`} src={wallet.metadata.icon} className="w-8 h-8 object-contain" />
-                    </div>
+                          <div className="flex-1 text-left">
+                            <div className="font-medium text-white group-hover:text-[#00B4F0] transition-colors">
+                              {isKmd(wallet) ? "LocalNet Wallet" : wallet.metadata.name}
+                            </div>
+                            <div className="text-sm text-gray-400">Connect with {wallet.metadata.name}</div>
+                          </div>
+
+                          {connectingId === wallet.id && (
+                            <div className="w-5 h-5 border-2 border-[#00B4F0] border-t-transparent rounded-full animate-spin" />
+                          )}
+
+                          {(wallet.id === "pera" || wallet.id === "defly") && !connectingId && (
+                            <span className="px-2 py-1 text-xs font-medium text-[#00B4F0] bg-[#00B4F0]/10 rounded-full">Mobile</span>
+                          )}
+                        </motion.button>
+                      ))}
+                    </AnimatePresence>
+                  </div>
+
+                  {connectError && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400"
+                    >
+                      <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5" viewBox="0 0 20 20" fill="currentColor">
+                          <path
+                            fillRule="evenodd"
+                            d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span>{connectError}</span>
+                      </div>
+                    </motion.div>
                   )}
-                  <div className="wallet-card-content">
-                    <div className="wallet-card-name">{isKmd(wallet) ? "LocalNet Wallet" : wallet.metadata.name}</div>
-                    <div className="wallet-card-desc">Connect to {wallet.metadata.name} to play and stake</div>
-                  </div>
-                  <div style={{ opacity: 0.9, fontSize: 12, color: "#6b7280" }}>{wallet.id}</div>
-                  {connectingId === wallet.id && <div style={{ marginLeft: 8, fontSize: 12 }}>Connecting…</div>}
-                </motion.button>
-              ))}
-
-              {connectError && (
-                <div className="card" style={{ background: "#fff6f6", color: "#7f1d1d" }}>
-                  <strong>Error:</strong> {connectError}
                 </div>
               )}
             </div>
-          )}
-        </div>
-
-        <div className="flex justify-between mt-8 pt-6 border-t">
-          <button
-            data-test-id="close-wallet-modal"
-            className="btn-soft"
-            onClick={() => {
-              closeModal();
-            }}
-          >
-            Close
-          </button>
-          {activeAddress && (
-            <button
-              className="btn-cricket btn-glow"
-              data-test-id="logout"
-              onClick={async () => {
-                if (wallets) {
-                  const activeWallet = wallets.find((w) => w.isActive);
-                  if (activeWallet) {
-                    await activeWallet.disconnect();
-                  } else {
-                    // Required for logout/cleanup of inactive providers
-                    localStorage.removeItem("@txnlab/use-wallet:v3");
-                    window.location.reload();
-                  }
-                }
-              }}
-            >
-              Disconnect Wallet
-            </button>
-          )}
-        </div>
-      </motion.div>
-    </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 

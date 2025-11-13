@@ -569,9 +569,9 @@ input:focus, select:focus {
 
 .wallet-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin: 1.5rem 0;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  margin: 1rem 0;
   width: 100%;
 }
 
@@ -579,11 +579,11 @@ input:focus, select:focus {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 1.25rem 1.5rem;
-  background: linear-gradient(135deg, rgba(20,24,36,0.95) 0%, rgba(10,14,23,0.9) 100%);
+  padding: 1rem 1.25rem;
+  background: rgba(20,24,36,0.95);
   border: 1px solid rgba(0,180,240,0.15);
-  border-radius: 1rem;
-  transition: all 0.3s cubic-bezier(.4,0,.2,1);
+  border-radius: 0.75rem;
+  transition: all 0.2s cubic-bezier(.4,0,.2,1);
   cursor: pointer;
   position: relative;
   overflow: hidden;
@@ -591,46 +591,31 @@ input:focus, select:focus {
   width: 100%;
 }
 
-.wallet-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #6b4ce6, #00b894);
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
-}
-
 .wallet-card:hover {
-  transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 12px 32px rgba(107,76,230,0.2), 0 6px 16px rgba(0,184,148,0.1);
-  border-color: rgba(107,76,230,0.3);
-}
-
-.wallet-card:hover::before {
-  transform: scaleX(1);
+  background: rgba(20,24,36,0.98);
+  transform: translateY(-2px);
+  border-color: rgba(0,180,240,0.4);
+  box-shadow: 0 8px 24px rgba(0,180,240,0.15);
 }
 
 .wallet-card-icon {
-  width: 48px;
-  height: 48px;
-  min-width: 48px;
-  border-radius: 12px;
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  border-radius: 10px;
   background: linear-gradient(135deg, rgba(0,180,240,0.1), rgba(0,180,240,0.05));
   display: flex;
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(0,180,240,0.2);
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
   overflow: hidden;
 }
 
 .wallet-card:hover .wallet-card-icon {
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(0,180,240,0.2);
+  transform: scale(1.05);
   border-color: rgba(0,180,240,0.4);
+  background: linear-gradient(135deg, rgba(0,180,240,0.15), rgba(0,180,240,0.1));
 }
 
 .wallet-card-content {
@@ -638,15 +623,15 @@ input:focus, select:focus {
 }
 
 .wallet-card-name {
-  font-weight: 700;
-  font-size: 1.1rem;
-  color: #1f2937;
+  font-weight: 600;
+  font-size: 1rem;
+  color: #EDEDED;
   margin-bottom: 0.25rem;
 }
 
 .wallet-card-desc {
-  font-size: 0.9rem;
-  color: #6b7280;
+  font-size: 0.875rem;
+  color: rgba(237,237,237,0.6);
   line-height: 1.4;
 }
 

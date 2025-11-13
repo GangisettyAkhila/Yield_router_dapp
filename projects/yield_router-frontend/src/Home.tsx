@@ -12,10 +12,8 @@ export default function Home() {
   const navigate = useNavigate();
   const { scrollY } = useScroll();
 
-  // Parallax effect for the hero background
   const y = useTransform(scrollY, [0, 500], [0, 150]);
 
-  // Animation variants for staggered animations
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {

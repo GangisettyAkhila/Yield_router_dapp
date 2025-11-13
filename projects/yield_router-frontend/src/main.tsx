@@ -6,15 +6,11 @@ import { WalletProvider, WalletManager } from "@txnlab/use-wallet-react";
 import { DeflyWalletConnect } from "@blockshake/defly-connect";
 import { PeraWalletConnect } from "@perawallet/connect";
 import { getAlgodConfigFromViteEnvironment } from "./utils/network/getAlgoClientConfigs";
-// ErrorBoundary intentionally omitted here to avoid duplicate React type issues during initialization.
 
-// Read environment config for Algod
 const algodConfig = getAlgodConfigFromViteEnvironment();
 
-// Pick network
 const network = algodConfig.network === "mainnet" ? "mainnet" : "testnet";
 
-// Initialize wallet clients
 const deflyWallet = new DeflyWalletConnect();
 const peraWallet = new PeraWalletConnect({ shouldShowSignTxnToast: true });
 

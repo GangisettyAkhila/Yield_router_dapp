@@ -1,5 +1,7 @@
 import * as React from "react";
 import { useWallet, Wallet, WalletId } from "@txnlab/use-wallet-react";
+import manager from "../walletManager";
+import { QRCodeSVG } from "qrcode.react";
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { ellipseAddress } from "../utils/ellipseAddress";
@@ -31,6 +33,39 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
   const isKmd = (wallet: Wallet) => wallet.id === WalletId.KMD;
   const [connectingId, setConnectingId] = useState<string | null>(null);
   const [connectError, setConnectError] = useState<string | null>(null);
+  const [lastWalletId, setLastWalletId] = useState<string | null>(null);
+  const [selectedWallet, setSelectedWallet] = useState<Wallet | null>(null);
+  const [showQR, setShowQR] = useState(false);
+  const [wcUri, setWcUri] = useState<string | null>(null);
+  const attachDisplayUriListener = async (walletId: WalletId) => {
+    try {
+      // Access internal client and WalletConnect connector (best-effort)
+      const base: any = manager.getWallet(walletId as any);
+      if (!base) return;
+
+      if (!base.client && typeof base.initializeClient === "function") {
+        await base.initializeClient();
+      }
+
+      const connector = base?.client?.connector;
+      if (connector && typeof connector.on === "function") {
+        const handler = (err: any, payload: any) => {
+          // WalletConnect v1 exposes `connector.uri`; payload may carry params too
+          const uri = (connector && (connector.uri || connector._uri)) || payload?.params?.[0];
+          if (uri) {
+            setWcUri(uri);
+            setShowQR(true);
+          }
+        };
+        // Avoid duplicating listeners
+        try { connector.off?.("display_uri", handler); } catch {}
+        connector.on("display_uri", handler);
+      }
+    } catch (e) {
+      console.warn("Unable to attach display_uri listener", e);
+    }
+  };
+
 
   useEffect(() => {
     const fetchBalance = async () => {
@@ -61,6 +96,33 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
       fetchBalance();
     }
   }, [activeAddress, algoConfig]);
+
+  // Load last wallet ID from localStorage on mount
+  useEffect(() => {
+    const storedWalletId = localStorage.getItem("lastConnectedWallet");
+    if (storedWalletId && !activeAddress) {
+      setLastWalletId(storedWalletId);
+      // Auto-connect if wallet is available
+      const wallet = wallets?.find(w => w.id === storedWalletId);
+      if (wallet) {
+        wallet.connect().catch(err => {
+          console.error("Auto-connect failed:", err);
+          localStorage.removeItem("lastConnectedWallet");
+        });
+      }
+    }
+  }, [wallets, activeAddress]);
+
+  // Clean up modal states when modal closes
+  useEffect(() => {
+    if (!openModal) {
+      setShowQR(false);
+      setWcUri(null);
+      setSelectedWallet(null);
+      setConnectError(null);
+      setConnectingId(null);
+    }
+  }, [openModal]);
 
   return (
     <div className={`modal ${openModal ? "modal-open" : ""} wallet-connect-modal`} aria-hidden={!openModal}>
@@ -150,15 +212,32 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
                   className="wallet-card"
                   onClick={async () => {
                     setConnectError(null);
+                    // Show our QR modal for WalletConnect wallets (Pera/Defly) and attach listener
+                    const usesWalletConnect = wallet.id === WalletId.PERA || wallet.id === WalletId.DEFLY;
+                    if (usesWalletConnect) {
+                      setSelectedWallet(wallet);
+                      setWcUri(null);
+                      setShowQR(true);
+                      attachDisplayUriListener(wallet.id as WalletId);
+                    }
                     try {
                       setConnectingId(wallet.id);
                       await wallet.connect();
+                      // Store wallet ID in localStorage on successful connection
+                      localStorage.setItem("lastConnectedWallet", wallet.id);
                       // Close the modal after successful connect
                       closeModal();
+                      setShowQR(false);
+                      setWcUri(null);
+                      setSelectedWallet(null);
                     } catch (err: any) {
                       console.error("Wallet connect failed", err);
-                      const msg = err?.message || String(err) || "Failed to connect wallet";
+                      const msg = err?.message || String(err) ||
+                        "Failed to connect wallet. Ensure the wallet app/extension is installed and unlocked.";
                       setConnectError(msg);
+                      setShowQR(false);
+                      setWcUri(null);
+                      setSelectedWallet(null);
                     } finally {
                       setConnectingId(null);
                     }
@@ -177,6 +256,8 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
                   {connectingId === wallet.id && <div style={{ marginLeft: 8, fontSize: 12 }}>Connecting…</div>}
                 </motion.button>
               ))}
+
+              
 
               {connectError && (
                 <div className="card" style={{ background: "#fff6f6", color: "#7f1d1d" }}>
@@ -212,6 +293,8 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
                     window.location.reload();
                   }
                 }
+                // Remove stored wallet ID on disconnect
+                localStorage.removeItem("lastConnectedWallet");
               }}
             >
               Disconnect Wallet
@@ -219,6 +302,60 @@ const ConnectWallet = ({ openModal, closeModal }: ConnectWalletInterface) => {
           )}
         </div>
       </motion.div>
+
+      {/* QR Modal: shown while WalletConnect providers (Pera/Defly) trigger their own QR */}
+      {openModal && showQR && selectedWallet && (
+        <div className="modal modal-open" aria-hidden="false">
+          <motion.div
+            className="modal-box"
+            role="dialog"
+            aria-modal="true"
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 8 }}
+            transition={{ duration: 0.22 }}
+          >
+            <h3 className="modal-title">Connect {selectedWallet.metadata.name}</h3>
+            <p className="modal-subtitle">Scan this QR with your {selectedWallet.metadata.name} mobile app to connect.</p>
+
+            {wcUri ? (
+              <div className="flex justify-center my-6">
+                <QRCodeSVG value={wcUri} size={256} level="M" includeMargin={true} />
+              </div>
+            ) : (
+              <div className="my-6 p-4 rounded-xl bg-gray-50 text-gray-700 text-sm">
+                Waiting for wallet to provide QR… If it doesn’t appear, a separate wallet window may have opened; check pop-up blockers or open the wallet app.
+              </div>
+            )}
+
+            {selectedWallet.id === WalletId.PERA && (
+              <div className="flex gap-3 items-center">
+                <a
+                  className="btn-cricket"
+                  href="https://perawallet.app/" target="_blank" rel="noreferrer"
+                >Open Pera</a>
+                <a
+                  className="btn-soft"
+                  href="algorand://" rel="noreferrer"
+                >Open Algorand App</a>
+              </div>
+            )}
+
+            <div className="flex justify-end mt-8 pt-6 border-t">
+              <button
+                className="btn-soft"
+                onClick={() => {
+                  setShowQR(false);
+                  setWcUri(null);
+                  setSelectedWallet(null);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };

@@ -14,6 +14,7 @@ function App() {
   const [openModal, setOpenModal] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const prevAddressRef = useRef<string | null>(null);
+  const location = useLocation();
 
   useEffect(() => {
     const prev = prevAddressRef.current;
@@ -66,8 +67,7 @@ function App() {
   }, []);
 
   return (
-    <Router>
-      <div className="app-root">
+    <div className="app-root">
         {/* Modern NavBar */}
         <nav className="topbar">
           <div className="flex items-center gap-6">
@@ -185,14 +185,13 @@ function App() {
         </nav>
 
         {/* ConnectWallet Modal - only render when needed */}
-        <ConnectWallet openModal={openModal} closeModal={() => setOpenModal(false)} />
+        {openModal && <ConnectWallet openModal={openModal} closeModal={() => setOpenModal(false)} />}
 
         {/* Routes with page transitions */}
         <AnimatePresence mode="wait">
           <MotionRoutes />
         </AnimatePresence>
       </div>
-    </Router>
   );
 }
 

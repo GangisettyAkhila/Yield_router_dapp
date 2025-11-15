@@ -12,7 +12,6 @@
     "npm": ">=9.0"
   },
   "devDependencies": {
-    "@algorandfoundation/algokit-client-generator": "^5.0.0",
     "@types/node": "^18.17.14",
     "@types/react": "^18.2.11",
     "@types/react-dom": "^18.2.4",
@@ -26,15 +25,17 @@
     "vite-plugin-node-polyfills": "^0.22.0"
   },
   "dependencies": {
-    "@algorandfoundation/algokit-utils": "^9.0.0",
+    "@algorandfoundation/algokit-utils": "^7.0.0",
     "@blockshake/defly-connect": "^1.2.1",
     "@headlessui/react": "^2.2.9",
     "@perawallet/connect": "1.4.2",
+    "@randlabs/myalgo-connect": "^1.4.2",
     "@txnlab/use-wallet": "^3.12.0",
     "@txnlab/use-wallet-react": "^4.3.1",
     "@types/react-router-dom": "^5.3.3",
     "algosdk": "^2.7.0",
     "framer-motion": "^10.18.0",
+    "qrcode.react": "^3.1.0",
     "notistack": "^3.0.1",
     "phaser": "^3.60.0",
     "react": "^18.2.0",
@@ -44,8 +45,8 @@
   },
   "scripts": {
     "generate:app-clients": "algokit project link --all",
-    "dev": "npm run generate:app-clients && vite",
-    "build": "npm run generate:app-clients && tsc && vite build",
+    "dev": "vite",
+    "build": "tsc && vite build",
     "preview": "vite preview"
   },
   "eslintConfig": {

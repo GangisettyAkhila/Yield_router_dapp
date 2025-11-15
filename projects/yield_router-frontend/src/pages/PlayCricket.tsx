@@ -34,17 +34,16 @@ export default function PlayCricket() {
   const [gameContract, setGameContract] = useState<GameMatchContractClient>();
 
   useEffect(() => {
-    const initContract = () => {
-      const config = getAlgodConfigFromViteEnvironment();
-      const algodClient = new Algodv2(config.token as string, config.server, config.port?.toString() || "");
-      // Replace with actual deployed contract ID
-      const CONTRACT_ID = 12345; // TODO: Replace with actual contract ID
-      const contract = new GameMatchContractClient(CONTRACT_ID, algodClient, transactionSigner as any);
-      setGameContract(contract);
-    };
-
-    initContract();
-  }, [transactionSigner]);
+    if (!transactionSigner) return;
+    
+    const config = getAlgodConfigFromViteEnvironment();
+    const algodClient = new Algodv2(config.token as string, config.server, config.port?.toString() || "");
+    // Replace with actual deployed contract ID
+    const CONTRACT_ID = 12345; // TODO: Replace with actual contract ID
+    const contract = new GameMatchContractClient(CONTRACT_ID, algodClient, transactionSigner as any);
+    setGameContract(contract);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeAddress]);
 
   const generateRandomRun = () => {
     // Possible outcomes: 0, 1, 2, 3, 4, 6, or Out

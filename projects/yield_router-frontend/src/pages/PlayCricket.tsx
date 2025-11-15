@@ -2,7 +2,7 @@ import * as React from "react";
 import { useWallet } from "@txnlab/use-wallet-react";
 import { useState, useEffect, useCallback } from "react";
 import { motion } from "framer-motion";
-import GameCanvas from "../components/GameCanvas";
+import StickCricketGame from "../components/StickCricketGame";
 import { useYieldRouter } from "../hooks/useYieldRouter";
 import { useLeaderboard } from "../hooks/useLeaderboard";
 
@@ -209,12 +209,12 @@ export default function PlayCricket() {
                   <span>ℹ️</span> How to Play
                 </h3>
                 <ul className="text-sm text-white/80 space-y-2">
-                  <li>• Move bat with mouse or arrow keys</li>
-                  <li>• Hit the ball to score runs</li>
-                  <li>• Perfect timing = 4s and 6s!</li>
-                  <li>• Build combos for multipliers</li>
-                  <li>• Game ends after 12 balls or 3 wickets</li>
-                  <li>• Earn rewards based on your score</li>
+                  <li>• <strong>← → or MOUSE</strong>: Move/aim bat position</li>
+                  <li>• <strong>SPACE</strong>: Hold to charge power, release to swing</li>
+                  <li>• <strong>Q/W/E</strong>: Special shots (Lofted/Cut/Pull)</li>
+                  <li>• Perfect timing + high power = Sixes! 🚀</li>
+                  <li>• Build combos for multipliers (up to 5x!) 🔥</li>
+                  <li>• Watch the smooth stick animations! 🏃</li>
                 </ul>
               </motion.div>
             </div>
@@ -249,7 +249,7 @@ export default function PlayCricket() {
                 </div>
               ) : (
                 <div className="bg-gradient-to-br from-blue-900/40 to-purple-900/40 backdrop-blur-lg rounded-3xl p-6 border border-blue-500/30">
-                  <GameCanvas onGameComplete={handleGameComplete} />
+                  <StickCricketGame onGameComplete={handleGameComplete} />
                 </div>
               )}
 

@@ -17,37 +17,7 @@ All hooks and components now fetch **real dynamic data** from Algorand smart con
 
 **Data Flow**:
 ```typescript
-// Real Mode (appId configured):
-Algorand TestNet → GameMatchContract Global State → Match List
-
-// Demo Mode (appId = 0 or undefined):
-localStorage → Cached Match Data → Match List
-```
-
-**Contract Integration**:
-- Connects to `https://testnet-api.algonode.cloud`
-- Queries global state keys like `match_1`, `match_2`
-- Extracts: playerA, playerB, scores, status, entryFee, stakingDeadline
-
-**Fallback Strategy**:
-- If contract query fails → reads from `localStorage.getItem('live_matches')`
-- Generates initial demo data if localStorage is empty
-
----
-
-### 2. **useLeaderboard** ✅
-**File**: `src/hooks/useLeaderboard.ts`
-
-**What Changed**:
-- ❌ **Before**: Generated random player stats
-- ✅ **After**: Queries `LeaderboardContract` for player rankings
-
-**Data Flow**:
-```typescript
-// Real Mode:
-LeaderboardContract Global State → Player Stats → Sorted Rankings
-
-// Demo Mode:
+// Real Modi
 localStorage.getItem('leaderboard_data') → Rankings
 ```
 

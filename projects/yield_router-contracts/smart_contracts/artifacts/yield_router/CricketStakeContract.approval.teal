@@ -1,0 +1,742 @@
+#pragma version 11
+#pragma typetrack false
+
+// algopy.arc4.ARC4Contract.approval_program() -> uint64:
+main:
+    intcblock 0 1 2 8
+    bytecblock "state" "pot" "owner" "winner" "local_stake_" "oracle" "claimed_" "fee_bps" "stake_amount" "resolve_after" 0x151f7c75
+    // smart_contracts/yield_router/contract.py:19
+    // class CricketStakeContract(ARC4Contract):
+    txn OnCompletion
+    !
+    assert // OnCompletion must be NoOp
+    txn ApplicationID
+    bz main_create_NoOp@17
+    pushbytess 0x0752a099 0xc9332c57 0xe521c357 0x7bfcfad2 0x7c3c2b0c 0xf1577726 0x23e629f7 0x0e78492f 0x0178f94b 0xa2206089 0xc0e204a6 // method "create_match(uint64,uint64,uint64,uint64)void", method "join_match(pay)void", method "start_match()void", method "submit_result(address,byte[],byte[])void", method "settle()void", method "claim()void", method "refund()void", method "update_oracle(address)void", method "pause()void", method "get_state()uint64", method "get_pot()uint64"
+    txna ApplicationArgs 0
+    match create_match join_match start_match submit_result settle claim refund update_oracle pause get_state get_pot
+    err
+
+main_create_NoOp@17:
+    // smart_contracts/yield_router/contract.py:19
+    // class CricketStakeContract(ARC4Contract):
+    pushbytes 0x1e07083c // method "custom_create(address,uint64)void"
+    txna ApplicationArgs 0
+    match custom_create
+    err
+
+
+// smart_contracts.yield_router.contract.CricketStakeContract.custom_create[routing]() -> void:
+custom_create:
+    // smart_contracts/yield_router/contract.py:31-32
+    // # ---------- creation ----------
+    // @arc4.abimethod(create="require")
+    txna ApplicationArgs 1
+    dup
+    len
+    pushint 32 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // smart_contracts/yield_router/contract.py:34
+    // self.owner = Txn.sender
+    bytec_2 // "owner"
+    txn Sender
+    app_global_put
+    // smart_contracts/yield_router/contract.py:35
+    // self.oracle = initial_oracle
+    bytec 5 // "oracle"
+    uncover 2
+    app_global_put
+    // smart_contracts/yield_router/contract.py:36
+    // self.fee_bps = initial_fee_bps
+    bytec 7 // "fee_bps"
+    swap
+    app_global_put
+    // smart_contracts/yield_router/contract.py:37
+    // self.state = UInt64(STATE_NONE)
+    bytec_0 // "state"
+    intc_0 // 0
+    app_global_put
+    // smart_contracts/yield_router/contract.py:38
+    // self.pot = UInt64(0)
+    bytec_1 // "pot"
+    intc_0 // 0
+    app_global_put
+    // smart_contracts/yield_router/contract.py:31-32
+    // # ---------- creation ----------
+    // @arc4.abimethod(create="require")
+    intc_1 // 1
+    return
+
+
+// smart_contracts.yield_router.contract.CricketStakeContract.create_match[routing]() -> void:
+create_match:
+    // smart_contracts/yield_router/contract.py:40-41
+    // # ---------- owner: create a match ----------
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 2
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 3
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    txna ApplicationArgs 4
+    dup
+    len
+    intc_3 // 8
+    ==
+    assert // invalid number of bytes for arc4.uint64
+    btoi
+    // smart_contracts/yield_router/contract.py:43
+    // assert Txn.sender == self.owner, "only owner"
+    txn Sender
+    intc_0 // 0
+    bytec_2 // "owner"
+    app_global_get_ex
+    assert // check self.owner exists
+    ==
+    assert // only owner
+    // smart_contracts/yield_router/contract.py:44
+    // assert self.state != UInt64(STATE_OPEN) and self.state != UInt64(STATE_STARTED), "match already active"
+    intc_0 // 0
+    bytec_0 // "state"
+    app_global_get_ex
+    assert // check self.state exists
+    intc_1 // 1
+    !=
+    bz create_match_bool_false@4
+    intc_0 // 0
+    bytec_0 // "state"
+    app_global_get_ex
+    assert // check self.state exists
+    intc_2 // 2
+    !=
+    bz create_match_bool_false@4
+    intc_1 // 1
+
+create_match_bool_merge@5:
+    // smart_contracts/yield_router/contract.py:44
+    // assert self.state != UInt64(STATE_OPEN) and self.state != UInt64(STATE_STARTED), "match already active"
+    assert // match already active
+    // smart_contracts/yield_router/contract.py:46
+    // self.asset_id = asset.id
+    pushbytes "asset_id"
+    dig 4
+    app_global_put
+    // smart_contracts/yield_router/contract.py:47
+    // self.stake_amount = stake
+    bytec 8 // "stake_amount"
+    dig 3
+    app_global_put
+    // smart_contracts/yield_router/contract.py:48
+    // self.state = UInt64(STATE_OPEN)
+    bytec_0 // "state"
+    intc_1 // 1
+    app_global_put
+    // smart_contracts/yield_router/contract.py:49
+    // self.pot = UInt64(0)
+    bytec_1 // "pot"
+    intc_0 // 0
+    app_global_put
+    // smart_contracts/yield_router/contract.py:50
+    // self.winner = Account()
+    bytec_3 // "winner"
+    global ZeroAddress
+    app_global_put
+    // smart_contracts/yield_router/contract.py:51
+    // self.start_round = start_after_round
+    pushbytes "start_round"
+    dig 2
+    app_global_put
+    // smart_contracts/yield_router/contract.py:52
+    // self.resolve_after = resolve_after_round
+    bytec 9 // "resolve_after"
+    dig 1
+    app_global_put
+    // smart_contracts/yield_router/contract.py:40-41
+    // # ---------- owner: create a match ----------
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+create_match_bool_false@4:
+    intc_0 // 0
+    b create_match_bool_merge@5
+
+
+// smart_contracts.yield_router.contract.CricketStakeContract.join_match[routing]() -> void:
+join_match:
+    // smart_contracts/yield_router/contract.py:54-55
+    // # ---------- join (stake) ----------
+    // @arc4.abimethod
+    txn GroupIndex
+    intc_1 // 1
+    -
+    dup
+    gtxns TypeEnum
+    intc_1 // pay
+    ==
+    assert // transaction type is pay
+    // smart_contracts/yield_router/contract.py:57
+    // assert self.state == UInt64(STATE_OPEN), "not open"
+    intc_0 // 0
+    bytec_0 // "state"
+    app_global_get_ex
+    assert // check self.state exists
+    intc_1 // 1
+    ==
+    assert // not open
+    // smart_contracts/yield_router/contract.py:58
+    // cur_stake = self.local_stakes.get(Txn.sender, default=UInt64(0))
+    bytec 4 // "local_stake_"
+    txn Sender
+    concat
+    box_get
+    swap
+    btoi
+    intc_0 // 0
+    swap
+    uncover 2
+    select
+    // smart_contracts/yield_router/contract.py:59
+    // assert cur_stake == UInt64(0), "already joined"
+    !
+    assert // already joined
+    // smart_contracts/yield_router/contract.py:61
+    // required = self.stake_amount
+    intc_0 // 0
+    bytec 8 // "stake_amount"
+    app_global_get_ex
+    assert // check self.stake_amount exists
+    // smart_contracts/yield_router/contract.py:63-64
+    // # validate payment transaction
+    // assert payment.sender == Txn.sender, "payment sender mismatch"
+    dig 1
+    gtxns Sender
+    txn Sender
+    ==
+    assert // payment sender mismatch
+    // smart_contracts/yield_router/contract.py:65
+    // assert payment.receiver == Global.current_application_address, "payment must go to contract"
+    dig 1
+    gtxns Receiver
+    global CurrentApplicationAddress
+    ==
+    assert // payment must go to contract
+    // smart_contracts/yield_router/contract.py:66
+    // assert payment.amount >= required, "insufficient payment"
+    swap
+    gtxns Amount
+    dig 1
+    >=
+    assert // insufficient payment
+    // smart_contracts/yield_router/contract.py:68-69
+    // # record stake and increase pot
+    // self.local_stakes[Txn.sender] = required
+    bytec 4 // "local_stake_"
+    txn Sender
+    concat
+    dig 1
+    itob
+    box_put
+    // smart_contracts/yield_router/contract.py:70
+    // total = self.pot + required
+    intc_0 // 0
+    bytec_1 // "pot"
+    app_global_get_ex
+    assert // check self.pot exists
+    +
+    // smart_contracts/yield_router/contract.py:71
+    // self.pot = total
+    bytec_1 // "pot"
+    swap
+    app_global_put
+    // smart_contracts/yield_router/contract.py:54-55
+    // # ---------- join (stake) ----------
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// smart_contracts.yield_router.contract.CricketStakeContract.start_match[routing]() -> void:
+start_match:
+    // smart_contracts/yield_router/contract.py:76
+    // assert Txn.sender == self.owner, "only owner"
+    txn Sender
+    intc_0 // 0
+    bytec_2 // "owner"
+    app_global_get_ex
+    assert // check self.owner exists
+    ==
+    assert // only owner
+    // smart_contracts/yield_router/contract.py:77
+    // assert self.state == UInt64(STATE_OPEN), "not open"
+    intc_0 // 0
+    bytec_0 // "state"
+    app_global_get_ex
+    assert // check self.state exists
+    intc_1 // 1
+    ==
+    assert // not open
+    // smart_contracts/yield_router/contract.py:78
+    // self.state = UInt64(STATE_STARTED)
+    bytec_0 // "state"
+    intc_2 // 2
+    app_global_put
+    // smart_contracts/yield_router/contract.py:73-74
+    // # ---------- start match ----------
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// smart_contracts.yield_router.contract.CricketStakeContract.submit_result[routing]() -> void:
+submit_result:
+    // smart_contracts/yield_router/contract.py:80-81
+    // # ---------- submit result ----------
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    pushint 32 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    txna ApplicationArgs 2
+    dup
+    intc_0 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_2 // 2
+    +
+    swap
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    txna ApplicationArgs 3
+    dup
+    intc_0 // 0
+    extract_uint16 // on error: invalid array length header
+    intc_2 // 2
+    +
+    swap
+    len
+    ==
+    assert // invalid number of bytes for arc4.dynamic_array<arc4.uint8>
+    // smart_contracts/yield_router/contract.py:83
+    // assert self.state == UInt64(STATE_STARTED), "match not started"
+    intc_0 // 0
+    bytec_0 // "state"
+    app_global_get_ex
+    assert // check self.state exists
+    intc_2 // 2
+    ==
+    assert // match not started
+    // smart_contracts/yield_router/contract.py:84
+    // assert Txn.sender == self.oracle, "only oracle signer"
+    txn Sender
+    intc_0 // 0
+    bytec 5 // "oracle"
+    app_global_get_ex
+    assert // check self.oracle exists
+    ==
+    assert // only oracle signer
+    // smart_contracts/yield_router/contract.py:86
+    // self.winner = winner_addr
+    bytec_3 // "winner"
+    swap
+    app_global_put
+    // smart_contracts/yield_router/contract.py:87
+    // self.state = UInt64(STATE_RESOLVING)
+    bytec_0 // "state"
+    pushint 3 // 3
+    app_global_put
+    // smart_contracts/yield_router/contract.py:80-81
+    // # ---------- submit result ----------
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// smart_contracts.yield_router.contract.CricketStakeContract.settle[routing]() -> void:
+settle:
+    // smart_contracts/yield_router/contract.py:92
+    // assert self.state == UInt64(STATE_RESOLVING), "not resolving"
+    intc_0 // 0
+    bytec_0 // "state"
+    app_global_get_ex
+    assert // check self.state exists
+    pushint 3 // 3
+    ==
+    assert // not resolving
+    // smart_contracts/yield_router/contract.py:93
+    // assert self.winner != Account(), "no winner"
+    intc_0 // 0
+    bytec_3 // "winner"
+    app_global_get_ex
+    assert // check self.winner exists
+    dup
+    global ZeroAddress
+    !=
+    assert // no winner
+    // smart_contracts/yield_router/contract.py:95
+    // pot = self.pot
+    intc_0 // 0
+    bytec_1 // "pot"
+    app_global_get_ex
+    assert // check self.pot exists
+    // smart_contracts/yield_router/contract.py:96
+    // fee = (pot * self.fee_bps) // UInt64(10000)
+    intc_0 // 0
+    bytec 7 // "fee_bps"
+    app_global_get_ex
+    assert // check self.fee_bps exists
+    dig 1
+    *
+    pushint 10000 // 10000
+    /
+    dup
+    cover 3
+    // smart_contracts/yield_router/contract.py:97
+    // payout = pot - fee
+    swap
+    dig 1
+    -
+    // smart_contracts/yield_router/contract.py:99-100
+    // # pay winner
+    // itxn.Payment(receiver=self.winner, amount=payout, fee=0).submit()
+    itxn_begin
+    itxn_field Amount
+    swap
+    itxn_field Receiver
+    intc_1 // pay
+    itxn_field TypeEnum
+    intc_0 // 0
+    itxn_field Fee
+    itxn_submit
+    // smart_contracts/yield_router/contract.py:102-103
+    // # pay fee to owner
+    // if fee > UInt64(0):
+    bz settle_after_if_else@5
+    // smart_contracts/yield_router/contract.py:104
+    // itxn.Payment(receiver=self.owner, amount=fee, fee=0).submit()
+    itxn_begin
+    intc_0 // 0
+    bytec_2 // "owner"
+    app_global_get_ex
+    assert // check self.owner exists
+    dig 1
+    itxn_field Amount
+    itxn_field Receiver
+    intc_1 // pay
+    itxn_field TypeEnum
+    intc_0 // 0
+    itxn_field Fee
+    itxn_submit
+
+settle_after_if_else@5:
+    // smart_contracts/yield_router/contract.py:106
+    // self.pot = UInt64(0)
+    bytec_1 // "pot"
+    intc_0 // 0
+    app_global_put
+    // smart_contracts/yield_router/contract.py:107
+    // self.state = UInt64(STATE_RESOLVED)
+    bytec_0 // "state"
+    pushint 4 // 4
+    app_global_put
+    // smart_contracts/yield_router/contract.py:89-90
+    // # ---------- settle (payout) ----------
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// smart_contracts.yield_router.contract.CricketStakeContract.claim[routing]() -> void:
+claim:
+    // smart_contracts/yield_router/contract.py:112
+    // assert self.state == UInt64(STATE_RESOLVED), "not resolved"
+    intc_0 // 0
+    bytec_0 // "state"
+    app_global_get_ex
+    assert // check self.state exists
+    pushint 4 // 4
+    ==
+    assert // not resolved
+    // smart_contracts/yield_router/contract.py:113
+    // assert Txn.sender == self.winner, "only winner"
+    txn Sender
+    intc_0 // 0
+    bytec_3 // "winner"
+    app_global_get_ex
+    assert // check self.winner exists
+    ==
+    assert // only winner
+    // smart_contracts/yield_router/contract.py:114
+    // assert self.claimed[Txn.sender] == UInt64(0), "already claimed"
+    bytec 6 // "claimed_"
+    txn Sender
+    concat
+    box_get
+    assert // check self.claimed entry exists
+    btoi
+    !
+    assert // already claimed
+    // smart_contracts/yield_router/contract.py:115
+    // self.claimed[Txn.sender] = UInt64(1)
+    bytec 6 // "claimed_"
+    txn Sender
+    concat
+    intc_1 // 1
+    itob
+    box_put
+    // smart_contracts/yield_router/contract.py:109-110
+    // # ---------- claim ----------
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// smart_contracts.yield_router.contract.CricketStakeContract.refund[routing]() -> void:
+refund:
+    // smart_contracts/yield_router/contract.py:120
+    // cur_round = Global.round
+    global Round
+    // smart_contracts/yield_router/contract.py:122
+    // self.state == UInt64(STATE_OPEN)
+    intc_0 // 0
+    bytec_0 // "state"
+    app_global_get_ex
+    assert // check self.state exists
+    intc_1 // 1
+    ==
+    // smart_contracts/yield_router/contract.py:122-124
+    // self.state == UInt64(STATE_OPEN)
+    // or self.state == UInt64(STATE_STARTED)
+    // or self.state == UInt64(STATE_RESOLVING)
+    bnz refund_bool_true@4
+    // smart_contracts/yield_router/contract.py:123
+    // or self.state == UInt64(STATE_STARTED)
+    intc_0 // 0
+    bytec_0 // "state"
+    app_global_get_ex
+    assert // check self.state exists
+    intc_2 // 2
+    ==
+    // smart_contracts/yield_router/contract.py:122-124
+    // self.state == UInt64(STATE_OPEN)
+    // or self.state == UInt64(STATE_STARTED)
+    // or self.state == UInt64(STATE_RESOLVING)
+    bnz refund_bool_true@4
+    // smart_contracts/yield_router/contract.py:124
+    // or self.state == UInt64(STATE_RESOLVING)
+    intc_0 // 0
+    bytec_0 // "state"
+    app_global_get_ex
+    assert // check self.state exists
+    pushint 3 // 3
+    ==
+    // smart_contracts/yield_router/contract.py:122-124
+    // self.state == UInt64(STATE_OPEN)
+    // or self.state == UInt64(STATE_STARTED)
+    // or self.state == UInt64(STATE_RESOLVING)
+    bz refund_bool_false@5
+
+refund_bool_true@4:
+    intc_1 // 1
+
+refund_bool_merge@6:
+    // smart_contracts/yield_router/contract.py:121-125
+    // assert (
+    //     self.state == UInt64(STATE_OPEN)
+    //     or self.state == UInt64(STATE_STARTED)
+    //     or self.state == UInt64(STATE_RESOLVING)
+    // ), "not refundable state"
+    assert // not refundable state
+    // smart_contracts/yield_router/contract.py:126
+    // assert cur_round >= self.resolve_after, "too early to refund"
+    intc_0 // 0
+    bytec 9 // "resolve_after"
+    app_global_get_ex
+    assert // check self.resolve_after exists
+    dig 1
+    <=
+    assert // too early to refund
+    // smart_contracts/yield_router/contract.py:128
+    // s = self.local_stakes.get(Txn.sender, default=UInt64(0))
+    bytec 4 // "local_stake_"
+    txn Sender
+    concat
+    box_get
+    swap
+    btoi
+    intc_0 // 0
+    swap
+    uncover 2
+    select
+    // smart_contracts/yield_router/contract.py:129
+    // assert s > UInt64(0), "no stake to refund"
+    dup
+    assert // no stake to refund
+    // smart_contracts/yield_router/contract.py:130
+    // assert self.claimed[Txn.sender] == UInt64(0), "already refunded/claimed"
+    bytec 6 // "claimed_"
+    txn Sender
+    concat
+    box_get
+    assert // check self.claimed entry exists
+    btoi
+    !
+    assert // already refunded/claimed
+    // smart_contracts/yield_router/contract.py:132
+    // itxn.Payment(receiver=Txn.sender, amount=s, fee=0).submit()
+    itxn_begin
+    txn Sender
+    dig 1
+    itxn_field Amount
+    itxn_field Receiver
+    intc_1 // pay
+    itxn_field TypeEnum
+    intc_0 // 0
+    itxn_field Fee
+    itxn_submit
+    // smart_contracts/yield_router/contract.py:134
+    // self.local_stakes[Txn.sender] = UInt64(0)
+    bytec 4 // "local_stake_"
+    txn Sender
+    concat
+    intc_0 // 0
+    itob
+    box_put
+    // smart_contracts/yield_router/contract.py:135
+    // self.pot = self.pot - s
+    intc_0 // 0
+    bytec_1 // "pot"
+    app_global_get_ex
+    assert // check self.pot exists
+    swap
+    -
+    bytec_1 // "pot"
+    swap
+    app_global_put
+    // smart_contracts/yield_router/contract.py:117-118
+    // # ---------- refund ----------
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+refund_bool_false@5:
+    intc_0 // 0
+    b refund_bool_merge@6
+
+
+// smart_contracts.yield_router.contract.CricketStakeContract.update_oracle[routing]() -> void:
+update_oracle:
+    // smart_contracts/yield_router/contract.py:137-138
+    // # ---------- admin helpers ----------
+    // @arc4.abimethod
+    txna ApplicationArgs 1
+    dup
+    len
+    pushint 32 // 32
+    ==
+    assert // invalid number of bytes for arc4.static_array<arc4.uint8, 32>
+    // smart_contracts/yield_router/contract.py:140
+    // assert Txn.sender == self.owner, "only owner"
+    txn Sender
+    intc_0 // 0
+    bytec_2 // "owner"
+    app_global_get_ex
+    assert // check self.owner exists
+    ==
+    assert // only owner
+    // smart_contracts/yield_router/contract.py:141
+    // self.oracle = new_oracle
+    bytec 5 // "oracle"
+    swap
+    app_global_put
+    // smart_contracts/yield_router/contract.py:137-138
+    // # ---------- admin helpers ----------
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// smart_contracts.yield_router.contract.CricketStakeContract.pause[routing]() -> void:
+pause:
+    // smart_contracts/yield_router/contract.py:145
+    // assert Txn.sender == self.owner, "only owner"
+    txn Sender
+    intc_0 // 0
+    bytec_2 // "owner"
+    app_global_get_ex
+    assert // check self.owner exists
+    ==
+    assert // only owner
+    // smart_contracts/yield_router/contract.py:146
+    // self.state = UInt64(STATE_REFUNDABLE)
+    bytec_0 // "state"
+    pushint 5 // 5
+    app_global_put
+    // smart_contracts/yield_router/contract.py:143
+    // @arc4.abimethod
+    intc_1 // 1
+    return
+
+
+// smart_contracts.yield_router.contract.CricketStakeContract.get_state[routing]() -> void:
+get_state:
+    // smart_contracts/yield_router/contract.py:150
+    // return self.state
+    intc_0 // 0
+    bytec_0 // "state"
+    app_global_get_ex
+    assert // check self.state exists
+    // smart_contracts/yield_router/contract.py:148
+    // @arc4.abimethod(readonly=True)
+    itob
+    bytec 10 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_1 // 1
+    return
+
+
+// smart_contracts.yield_router.contract.CricketStakeContract.get_pot[routing]() -> void:
+get_pot:
+    // smart_contracts/yield_router/contract.py:154
+    // return self.pot
+    intc_0 // 0
+    bytec_1 // "pot"
+    app_global_get_ex
+    assert // check self.pot exists
+    // smart_contracts/yield_router/contract.py:152
+    // @arc4.abimethod(readonly=True)
+    itob
+    bytec 10 // 0x151f7c75
+    swap
+    concat
+    log
+    intc_1 // 1
+    return

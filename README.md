@@ -11,7 +11,7 @@ This starter full stack project has been generated using AlgoKit. See below for 
 
 https://lora.algokit.io/testnet/application/749708005
 
-## updated game version
+## updated game version working demo
 
 https://drive.google.com/drive/folders/1KwLDYkRVZM09AXB8w3eX4dL57KqxsBKX
 

@@ -2,6 +2,19 @@
 
 This starter full stack project has been generated using AlgoKit. See below for default getting started instructions.
 
+## testnet addresses
+
+-ceater UODKHGPAPKGIPGVV7D23RGRRMPPEVDISN2KKR3XHZ62ZQKHZKCLJUXSVOE
+-account 7K443N5GFDDX57AKNG6T7LO4IUQJF2V4CHC2UBRL43DFKWICKOXDQWCW4A
+
+## lora link
+
+https://lora.algokit.io/testnet/application/749708005
+
+## updated game version
+
+https://drive.google.com/drive/folders/1KwLDYkRVZM09AXB8w3eX4dL57KqxsBKX
+
 ## Setup
 
 ### Initial setup
